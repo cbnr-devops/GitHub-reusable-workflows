@@ -1,0 +1,19 @@
+name: Install dependencies
+description: Set up Node.js 18.x and install dependencies
+inputs:
+  command:
+    description: Command to install dependencies (npm, yarn, pnpm, etc.)
+    required: false
+    default: npm install
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Node.js 18.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18.x
+
+    - name: Install dependencies
+      shell: bash
+      run: ${{ inputs.command }}

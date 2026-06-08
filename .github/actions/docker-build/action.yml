@@ -1,0 +1,25 @@
+name: Docker build
+description: Build a Docker image with optional target stage
+inputs:
+  image_name:
+    description: Image name (without tag)
+    required: true
+  tag:
+    description: Image tag
+    required: true
+  target:
+    description: Optional Dockerfile target stage
+    required: false
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - name: Docker build
+      shell: bash
+      run: |
+        if [ -n "${{ inputs.target }}" ]; then
+          docker build --target "${{ inputs.target }}" -t "${{ inputs.image_name }}:${{ inputs.tag }}" .
+        else
+          docker build -t "${{ inputs.image_name }}:${{ inputs.tag }}" .
+        fi

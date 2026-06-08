@@ -1,0 +1,28 @@
+name: Trivy image scan
+description: Scan a Docker image with Trivy and do not fail the job on vulnerabilities
+inputs:
+  image_name:
+    description: Image name (without tag)
+    required: true
+  tag:
+    description: Image tag
+    required: true
+  severity:
+    description: Comma-separated severities
+    required: false
+    default: HIGH,CRITICAL
+  format:
+    description: Output format
+    required: false
+    default: table
+
+runs:
+  using: composite
+  steps:
+    - name: Trivy image scan
+      shell: bash
+      run: |
+        trivy image \
+          --severity "${{ inputs.severity }}" \
+          --format "${{ inputs.format }}" \
+          "${{ inputs.image_name }}:${{ inputs.tag }}" || true

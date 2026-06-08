@@ -1,0 +1,46 @@
+name: SonarCloud quality gate
+description: Wait for SonarCloud quality gate result
+inputs:
+  project_key:
+    description: SonarCloud project key
+    required: true
+  token_secret_name:
+    description: Name of the GitHub secret containing the Sonar token
+    required: false
+    default: SONAR_TOKEN
+  timeout_seconds:
+    description: Max time to wait for quality gate
+    required: false
+    default: '120'
+
+runs:
+  using: composite
+  steps:
+    - name: Wait for quality gate
+      shell: bash
+      env:
+        SONAR_TOKEN: ${{ secrets[inputs.token_secret_name] }}
+      run: |
+        end=$((SECONDS + ${{ inputs.timeout_seconds }}))
+        status="PENDING"
+
+        while [ $SECONDS -lt $end ]; do
+          status=$(curl -s -u "${SONAR_TOKEN}:" \
+            "https://sonarcloud.io/api/qualitygates/project_status?projectKey=${{ inputs.project_key }}" \
+            | jq -r '.projectStatus.status')
+
+          echo "Current quality gate status: $status"
+
+          if [ "$status" = "OK" ]; then
+            echo "Quality gate passed"
+            exit 0
+          elif [ "$status" = "ERROR" ]; then
+            echo "Quality gate failed"
+            exit 1
+          fi
+
+          sleep 10
+        done
+
+        echo "Timed out waiting for quality gate"
+        exit 1

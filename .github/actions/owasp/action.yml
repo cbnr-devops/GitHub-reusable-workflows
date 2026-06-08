@@ -1,0 +1,39 @@
+name: OWASP Dependency Check
+description: Run OWASP Dependency Check and upload reports
+inputs:
+  project_name:
+    description: Project name for the report
+    required: true
+  nvd_api_key:
+    description: NVD API key
+    required: false
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - name: Create reports directory
+      shell: bash
+      run: mkdir -p reports
+
+    - name: Run OWASP Dependency Check
+      shell: bash
+      run: |
+        dependency-check.sh \
+          --project "${{ inputs.project_name }}" \
+          --scan "." \
+          --format "HTML,XML" \
+          --out "reports" \
+          --nvdApiKey "${{ inputs.nvd_api_key }}" \
+          --nvdApiDelay 2000 \
+          --disableYarnAudit \
+          --disableOssIndex
+
+    - name: Upload OWASP reports
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: owasp-dependency-check
+        path: |
+          reports/dependency-check-report.xml
+          reports/dependency-check-report.html

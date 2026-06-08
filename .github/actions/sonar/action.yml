@@ -1,0 +1,29 @@
+name: SonarCloud analysis
+description: Run SonarCloud analysis using the official action
+inputs:
+  project_key:
+    description: SonarCloud project key
+    required: true
+  project_name:
+    description: SonarCloud project name
+    required: true
+  organization:
+    description: SonarCloud organization
+    required: true
+    default: sk-solar-project
+  token_secret_name:
+    description: Name of the GitHub secret containing the Sonar token
+    required: false
+    default: SONAR_TOKEN
+
+runs:
+  using: composite
+  steps:
+    - name: SonarCloud scan
+      uses: SonarSource/sonarcloud-github-action@v2
+      env:
+        SONAR_TOKEN: ${{ secrets[inputs.token_secret_name] }}
+      with:
+        projectKey: ${{ inputs.project_key }}
+        projectName: ${{ inputs.project_name }}
+        organization: ${{ inputs.organization }}

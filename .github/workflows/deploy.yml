@@ -1,0 +1,82 @@
+name: Deploy to EKS
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: Logical environment name (dev, staging, prod)
+        required: true
+        type: string
+      cluster_name:
+        description: EKS cluster name
+        required: true
+        type: string
+      aws_region:
+        description: AWS region of the EKS cluster
+        required: true
+        type: string
+      namespace:
+        description: Kubernetes namespace to deploy into
+        required: true
+        type: string
+      helm_path:
+        description: Path to Helm chart in caller repo
+        required: true
+        type: string
+      release_name:
+        description: Helm release name
+        required: false
+        type: string
+        default: app
+      image_name:
+        description: Container image name (without tag)
+        required: true
+        type: string
+      image_tag:
+        description: Container image tag
+        required: true
+        type: string
+      values_file:
+        description: Optional Helm values file
+        required: false
+        type: string
+      extra_helm_args:
+        description: Extra args to pass to helm upgrade
+        required: false
+        type: string
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure kubectl for EKS
+        shell: bash
+        run: |
+          aws eks update-kubeconfig \
+            --name "${{ inputs.cluster_name }}" \
+            --region "${{ inputs.aws_region }}"
+
+      - name: Helm upgrade/install
+        shell: bash
+        working-directory: ${{ inputs.helm_path }}
+        run: |
+          RELEASE_NAME="${{ inputs.release_name }}"
+          IMAGE_NAME="${{ inputs.image_name }}"
+          IMAGE_TAG="${{ inputs.image_tag }}"
+          NAMESPACE="${{ inputs.namespace }}"
+
+          VALUES_ARG=""
+          if [ -n "${{ inputs.values_file }}" ]; then
+            VALUES_ARG="-f ${{ inputs.values_file }}"
+          fi
+
+          EXTRA_ARGS="${{ inputs.extra_helm_args }}"
+
+          helm upgrade --install "$RELEASE_NAME" . \
+            --namespace "$NAMESPACE" \
+            --create-namespace \
+            $VALUES_ARG \
+            --set image.repository="$IMAGE_NAME" \
+            --set image.tag="$IMAGE_TAG" \
+            $EXTRA_ARGS

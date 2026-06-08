@@ -1,0 +1,133 @@
+name: Generic build pipeline
+
+on:
+  workflow_call:
+    inputs:
+      image_name:
+        description: Container image name (without tag)
+        required: true
+        type: string
+      image_tag:
+        description: Container image tag
+        required: true
+        type: string
+      install_command:
+        description: Command to install dependencies
+        required: false
+        type: string
+        default: npm ci
+      test_command:
+        description: Command to run tests
+        required: false
+        type: string
+        default: npm test
+      sonar_project_key:
+        description: Sonar project key
+        required: false
+        type: string
+      sonar_project_name:
+        description: Sonar project name
+        required: false
+        type: string
+      sonar_enabled:
+        description: Whether to run Sonar analysis and quality gate
+        required: false
+        type: boolean
+        default: false
+      owasp_enabled:
+        description: Whether to run OWASP dependency-check
+        required: false
+        type: boolean
+        default: false
+      owasp_project_name:
+        description: OWASP project name
+        required: false
+        type: string
+      trivy_enabled:
+        description: Whether to run Trivy image scan
+        required: false
+        type: boolean
+        default: true
+      aws_region:
+        description: AWS region for ECR
+        required: false
+        type: string
+      aws_account_id:
+        description: AWS account ID for ECR
+        required: false
+        type: string
+      ecr_repository:
+        description: ECR repository name (defaults to image_name if empty)
+        required: false
+        type: string
+    outputs:
+      built_image_name:
+        description: Image name used for the build
+        value: ${{ jobs.build.outputs.built_image_name }}
+      built_image_tag:
+        description: Image tag used for the build
+        value: ${{ jobs.build.outputs.built_image_tag }}
+      built_image_uri:
+        description: Full image URI (if ECR info provided)
+        value: ${{ jobs.build.outputs.built_image_uri }}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    outputs:
+      built_image_name: ${{ steps.docker-build.outputs.built_image_name }}
+      built_image_tag: ${{ steps.docker-build.outputs.built_image_tag }}
+      built_image_uri: ${{ steps.docker-build.outputs.built_image_uri }}
+
+    steps:
+      - uses: ./.github/actions/checkout
+
+      - uses: ./.github/actions/install
+        with:
+          command: ${{ inputs.install_command }}
+
+      - name: OWASP dependency check
+        if: inputs.owasp_enabled == true
+        uses: ./.github/actions/owasp
+        with:
+          project_name: ${{ inputs.owasp_project_name || inputs.image_name }}
+          nvd_api_key: ${{ secrets.NVD_API_KEY }}
+
+      - uses: ./.github/actions/test
+        with:
+          command: ${{ inputs.test_command }}
+
+      - name: SonarCloud analysis
+        if: inputs.sonar_enabled == true
+        uses: ./.github/actions/sonar
+        with:
+          project_key: ${{ inputs.sonar_project_key }}
+          project_name: ${{ inputs.sonar_project_name }}
+
+      - name: Sonar quality gate
+        if: inputs.sonar_enabled == true
+        uses: ./.github/actions/quality-gate
+        with:
+          project_key: ${{ inputs.sonar_project_key }}
+
+      - uses: ./.github/actions/docker-build
+        with:
+          image_name: ${{ inputs.image_name }}
+          tag: ${{ inputs.image_tag }}
+
+      - name: Trivy image scan
+        if: inputs.trivy_enabled == true
+        uses: ./.github/actions/trivy-image-scan
+        with:
+          image_name: ${{ inputs.image_name }}
+          tag: ${{ inputs.image_tag }}
+
+      - name: Push image to ECR
+        if: inputs.aws_region != '' && inputs.aws_account_id != ''
+        uses: ./.github/actions/ecr-push
+        with:
+          image_name: ${{ inputs.image_name }}
+          tag: ${{ inputs.image_tag }}
+          aws_region: ${{ inputs.aws_region }}
+          account_id: ${{ inputs.aws_account_id }}
+          repository: ${{ inputs.ecr_repository }}

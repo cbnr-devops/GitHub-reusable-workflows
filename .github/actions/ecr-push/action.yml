@@ -1,0 +1,64 @@
+name: Push image to ECR
+description: Tag and push a Docker image to Amazon ECR with version and latest tags
+inputs:
+  image_name:
+    description: Local image name (without tag)
+    required: true
+  tag:
+    description: Image tag
+    required: true
+  aws_region:
+    description: AWS region for ECR
+    required: true
+  account_id:
+    description: AWS account ID that owns the ECR repo
+    required: true
+  repository:
+    description: ECR repository name (can be same as image_name)
+    required: false
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - name: Set repository name
+      id: repo
+      shell: bash
+      run: |
+        if [ -n "${{ inputs.repository }}" ]; then
+          echo "value=${{ inputs.repository }}" >> "$GITHUB_OUTPUT"
+        else
+          echo "value=${{ inputs.image_name }}" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Login to ECR
+      shell: bash
+      run: |
+        aws ecr get-login-password --region "${{ inputs.aws_region }}" \
+          | docker login \
+            --username AWS \
+            --password-stdin "${{ inputs.account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com"
+
+    - name: Tag image
+      shell: bash
+      run: |
+        REPO="${{ steps.repo.outputs.value }}"
+        REGISTRY="${{ inputs.account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com"
+        docker tag "${{ inputs.image_name }}:${{ inputs.tag }}" "${REGISTRY}/${REPO}:${{ inputs.tag }}"
+        docker tag "${{ inputs.image_name }}:${{ inputs.tag }}" "${REGISTRY}/${REPO}:latest"
+
+    - name: Push image
+      shell: bash
+      run: |
+        REPO="${{ steps.repo.outputs.value }}"
+        REGISTRY="${{ inputs.account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com"
+        docker push "${REGISTRY}/${REPO}:${{ inputs.tag }}"
+        docker push "${REGISTRY}/${REPO}:latest"
+
+    - name: Clean up local tags
+      shell: bash
+      run: |
+        REPO="${{ steps.repo.outputs.value }}"
+        REGISTRY="${{ inputs.account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com"
+        docker rmi "${REGISTRY}/${REPO}:${{ inputs.tag }}" || true
+        docker rmi "${REGISTRY}/${REPO}:latest" || true

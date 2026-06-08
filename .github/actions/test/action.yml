@@ -1,0 +1,21 @@
+name: Run tests
+description: Run unit tests and publish JUnit results
+inputs:
+  command:
+    description: Command to run tests
+    required: false
+    default: npm test
+
+runs:
+  using: composite
+  steps:
+    - name: Run tests
+      shell: bash
+      run: ${{ inputs.command }}
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: junit-test-results
+        path: '**/test-results.xml'
