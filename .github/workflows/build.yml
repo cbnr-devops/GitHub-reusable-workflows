@@ -70,6 +70,11 @@ on:
       built_image_uri:
         description: Full image URI (if ECR info provided)
         value: ${{ jobs.build.outputs.built_image_uri }}
+
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -81,6 +86,12 @@ jobs:
 
     steps:
       - uses: ./.github/actions/checkout
+
+      - name: Configure AWS credentials for CI role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CI_ROLE_ARN }}
+          aws-region: ${{ inputs.aws_region }}
 
       - uses: ./.github/actions/install
         with:

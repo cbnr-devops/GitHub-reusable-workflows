@@ -45,11 +45,23 @@ on:
         required: false
         type: string
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: ./.github/actions/checkout
+
+      - name: Configure AWS credentials for CI role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CI_ROLE_ARN }}
+          aws-region: ${{ inputs.aws_region }}
+
       - name: Configure kubectl for EKS
         shell: bash
         run: |
