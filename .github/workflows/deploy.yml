@@ -58,7 +58,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: ./.github/actions/checkout
+      - uses: actions/checkout@v4
 
       - name: Configure AWS credentials for CI role
         uses: aws-actions/configure-aws-credentials@v4

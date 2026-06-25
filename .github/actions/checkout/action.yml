@@ -1,9 +1,0 @@
-name: Reusable checkout
-description: Checkout repo with clean
-runs:
-  using: composite
-  steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        clean: true

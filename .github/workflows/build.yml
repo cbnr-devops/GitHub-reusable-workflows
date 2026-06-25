@@ -96,7 +96,7 @@ jobs:
       built_image_uri: ${{ steps.docker-build.outputs.built_image_uri }}
 
     steps:
-      - uses: ./.github/actions/checkout
+      - uses: actions/checkout@v4
 
       - name: Configure AWS credentials for CI role
         uses: aws-actions/configure-aws-credentials@v4
