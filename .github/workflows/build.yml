@@ -104,49 +104,49 @@ jobs:
           role-to-assume: ${{ secrets.CI_ROLE_ARN }}
           aws-region: ${{ inputs.aws_region }}
 
-      - uses: ./.github/actions/install
+      - uses: cbnr-devops/GitHub-reusable-workflows/.github/actions/install@sks-16
         with:
           command: ${{ inputs.install_command }}
 
       - name: OWASP dependency check
         if: inputs.owasp_enabled == true
-        uses: ./.github/actions/owasp
+        uses: cbnr-devops/GitHub-reusable-workflows/.github/actions/owasp@sks-16
         with:
           project_name: ${{ inputs.owasp_project_name || inputs.image_name }}
           nvd_api_key: ${{ secrets.NVD_API_KEY }}
 
-      - uses: ./.github/actions/test
+      - uses: cbnr-devops/GitHub-reusable-workflows/.github/actions/test@sks-16
         with:
           command: ${{ inputs.test_command }}
 
       - name: SonarCloud analysis
         if: inputs.sonar_enabled == true
-        uses: ./.github/actions/sonar
+        uses: cbnr-devops/GitHub-reusable-workflows/.github/actions/sonar@sks-16
         with:
           project_key: ${{ inputs.sonar_project_key }}
           project_name: ${{ inputs.sonar_project_name }}
 
       - name: Sonar quality gate
         if: inputs.sonar_enabled == true
-        uses: ./.github/actions/quality-gate
+        uses: cbnr-devops/GitHub-reusable-workflows/.github/actions/quality-gate@sks-16
         with:
           project_key: ${{ inputs.sonar_project_key }}
 
-      - uses: ./.github/actions/docker-build
+      - uses: cbnr-devops/GitHub-reusable-workflows/.github/actions/docker-build@sks-16
         with:
           image_name: ${{ inputs.image_name }}
           tag: ${{ inputs.image_tag }}
 
       - name: Trivy image scan
         if: inputs.trivy_enabled == true
-        uses: ./.github/actions/trivy-image-scan
+        uses: cbnr-devops/GitHub-reusable-workflows/.github/actions/trivy-image-scan@sks-16
         with:
           image_name: ${{ inputs.image_name }}
           tag: ${{ inputs.image_tag }}
 
       - name: Push image to ECR
         if: inputs.aws_region != '' && inputs.aws_account_id != ''
-        uses: ./.github/actions/ecr-push
+        uses: cbnr-devops/GitHub-reusable-workflows/.github/actions/ecr-push@sks-16
         with:
           image_name: ${{ inputs.image_name }}
           tag: ${{ inputs.image_tag }}
