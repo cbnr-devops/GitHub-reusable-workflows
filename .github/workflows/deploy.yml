@@ -44,6 +44,10 @@ on:
         description: Extra args to pass to helm upgrade
         required: false
         type: string
+    secrets:
+      CI_ROLE_ARN:
+        description: IAM role ARN for CI
+        required: false
 
 permissions:
   id-token: write

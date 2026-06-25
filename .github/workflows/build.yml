@@ -70,6 +70,17 @@ on:
       built_image_uri:
         description: Full image URI (if ECR info provided)
         value: ${{ jobs.build.outputs.built_image_uri }}
+    secrets:
+      NVD_API_KEY:
+        description: NVD API key for OWASP
+        required: false
+      SONAR_TOKEN:
+        description: SonarCloud token
+        required: false
+      CI_ROLE_ARN:
+        description: IAM role ARN for CI
+        required: false
+
 
 permissions:
   id-token: write
