@@ -25,7 +25,8 @@ runs:
           owasp/dependency-check:latest \
           --project "${{ inputs.project_name }}" \
           --scan "/src" \
-          --format "HTML,XML" \
+          --format "HTML" \
+          --format "XML" \
           --out "/report" \
           --nvdApiKey "${{ inputs.nvd_api_key }}" \
           --nvdApiDelay 2000 \
