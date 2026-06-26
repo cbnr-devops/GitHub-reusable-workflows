@@ -22,7 +22,7 @@ runs:
     - name: SonarCloud scan
       uses: SonarSource/sonarcloud-github-action@v2
       env:
-        SONAR_TOKEN: ${{ secrets[inputs.token_secret_name] }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       with:
         projectKey: ${{ inputs.project_key }}
         projectName: ${{ inputs.project_name }}
