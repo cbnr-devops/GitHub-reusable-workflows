@@ -19,7 +19,7 @@ runs:
     - name: Wait for quality gate
       shell: bash
       env:
-        SONAR_TOKEN: ${{ secrets[inputs.token_secret_name] }}
+        SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
       run: |
         end=$((SECONDS + ${{ inputs.timeout_seconds }}))
         status="PENDING"
