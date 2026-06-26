@@ -24,6 +24,7 @@ runs:
       env:
         SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
       with:
-        projectKey: ${{ inputs.project_key }}
-        projectName: ${{ inputs.project_name }}
-        organization: ${{ inputs.organization }}
+        args: >
+          -Dsonar.projectKey=${{ inputs.project_key }}
+          -Dsonar.projectName=${{ inputs.project_name }}
+          -Dsonar.organization=${{ inputs.organization }}
