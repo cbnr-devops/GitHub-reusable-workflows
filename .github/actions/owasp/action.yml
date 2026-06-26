@@ -19,11 +19,14 @@ runs:
     - name: Run OWASP Dependency Check
       shell: bash
       run: |
-        dependency-check.sh \
+        docker run --rm \
+          -v "$PWD:/src" \
+          -v "$PWD/reports:/report" \
+          owasp/dependency-check:latest \
           --project "${{ inputs.project_name }}" \
-          --scan "." \
+          --scan "/src" \
           --format "HTML,XML" \
-          --out "reports" \
+          --out "/report" \
           --nvdApiKey "${{ inputs.nvd_api_key }}" \
           --nvdApiDelay 2000 \
           --disableYarnAudit \

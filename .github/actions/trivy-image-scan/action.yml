@@ -22,7 +22,9 @@ runs:
     - name: Trivy image scan
       shell: bash
       run: |
-        trivy image \
+        docker run --rm \
+          aquasecurity/trivy:latest \
+          image \
           --severity "${{ inputs.severity }}" \
           --format "${{ inputs.format }}" \
           "${{ inputs.image_name }}:${{ inputs.tag }}" || true
