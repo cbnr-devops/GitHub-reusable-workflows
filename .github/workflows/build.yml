@@ -122,6 +122,8 @@ jobs:
       - name: SonarCloud analysis
         if: inputs.sonar_enabled == true
         uses: cbnr-devops/GitHub-reusable-workflows/.github/actions/sonar@sks-16
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           project_key: ${{ inputs.sonar_project_key }}
           project_name: ${{ inputs.sonar_project_name }}
