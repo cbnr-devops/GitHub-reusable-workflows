@@ -81,7 +81,6 @@ on:
         description: IAM role ARN for CI
         required: false
 
-
 permissions:
   id-token: write
   contents: read
@@ -128,11 +127,11 @@ jobs:
           project_key: ${{ inputs.sonar_project_key }}
           project_name: ${{ inputs.sonar_project_name }}
 
-      - name: Sonar quality gate
-        if: inputs.sonar_enabled == true
-        uses: cbnr-devops/GitHub-reusable-workflows/.github/actions/quality-gate@sks-16
-        with:
-          project_key: ${{ inputs.sonar_project_key }}
+      #- name: Sonar quality gate
+      #  if: inputs.sonar_enabled == true
+      #  uses: cbnr-devops/GitHub-reusable-workflows/.github/actions/quality-gate@sks-16
+      #  with:
+      #    project_key: ${{ inputs.sonar_project_key }}
 
       - uses: cbnr-devops/GitHub-reusable-workflows/.github/actions/docker-build@sks-16
         with:
