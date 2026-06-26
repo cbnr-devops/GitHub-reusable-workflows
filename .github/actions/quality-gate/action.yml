@@ -25,9 +25,12 @@ runs:
         status="PENDING"
 
         while [ $SECONDS -lt $end ]; do
-          status=$(curl -s -u "${SONAR_TOKEN}:" \
-            "https://sonarcloud.io/api/qualitygates/project_status?projectKey=${{ inputs.project_key }}" \
-            | jq -r '.projectStatus.status')
+          response=$(curl -s -u "${SONAR_TOKEN}:" \
+            "https://sonarcloud.io/api/qualitygates/project_status?projectKey=${{ inputs.project_key }}")
+
+          echo "Raw quality gate response: $response"
+
+          status=$(echo "$response" | jq -r '.projectStatus.status')
 
           echo "Current quality gate status: $status"
 
