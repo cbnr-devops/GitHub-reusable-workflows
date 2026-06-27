@@ -12,6 +12,14 @@ inputs:
     required: false
     default: ''
 
+outputs:
+  built_image_name:
+    description: Image name used for the build
+    value: ${{ inputs.image_name }}
+  built_image_tag:
+    description: Image tag used for the build
+    value: ${{ inputs.tag }}
+
 runs:
   using: composite
   steps:
