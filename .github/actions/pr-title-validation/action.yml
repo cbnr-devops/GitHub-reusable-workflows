@@ -1,0 +1,36 @@
+name: PR title validation
+inputs:
+  title:
+    description: PR/MR title to validate
+    required: false
+    default: ${{ github.event.pull_request.title }}
+  linear_id_pattern:
+    description: Regex pattern used to match a Linear ticket ID
+    required: false
+    default: '[A-Z][A-Z0-9]+-[0-9]+'
+
+runs:
+  using: composite
+  steps:
+    - name: Validate Linear ticket ID in title
+      shell: bash
+      env:
+        PR_MR_TITLE: ${{ inputs.title }}
+        LINEAR_ID_PATTERN: ${{ inputs.linear_id_pattern }}
+      run: |
+        title="$PR_MR_TITLE"
+        linear_id_pattern="$LINEAR_ID_PATTERN"
+
+        if [ -z "$title" ]; then
+          echo "::error::PR/MR title is empty. Add a Linear ticket ID."
+          exit 1
+        fi
+
+        if [[ "$title" =~ $linear_id_pattern ]]; then
+          echo "PR/MR title contains Linear ticket ID: ${BASH_REMATCH[0]}"
+          exit 0
+        fi
+
+        echo "::error::PR/MR title must contain a Linear ticket ID."
+        echo "Current title: $title"
+        exit 1
